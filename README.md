@@ -122,7 +122,7 @@ fetch("https://your-api.onrender.com/api/verify", { ... });
 ## 🙌 Team Credits
 
 - 👥 Built by Team Vitality during HackAttack 2025
-  - Indrakanti Kevin
+  - Indrakanti Kevin (Team Lead)
   - Soumya Sudhir Nayak
   - Sameer Sipia
   - Malkan Vardhini
