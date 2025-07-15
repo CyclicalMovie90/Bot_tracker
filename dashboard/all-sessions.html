@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PEDIAScape - All Sessions</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .navigation {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .nav-button {
+      padding: 10px 20px;
+      background-color: #00acc1;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin: 0 10px;
+    }
+    .nav-button:hover {
+      background-color: #007c91;
+    }
+    .nav-button.active {
+      background-color: #007c91;
+    }
+    .stats-container {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+    }
+    .stat-card {
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #00acc1;
+    }
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+      margin-top: 5px;
+    }
+    .chart-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    tr:hover {
+      background-color: #f5f5f5;
+    }
+    .verdict-human {
+      color: #00897b;
+      font-weight: bold;
+    }
+    .verdict-bot {
+      color: #e53935;
+      font-weight: bold;
+    }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .page-button {
+      background-color: #f2f2f2;
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      margin: 0 5px;
+      cursor: pointer;
+    }
+    .page-button.active {
+      background-color: #00acc1;
+      color: white;
+      border-color: #00acc1;
+    }
+    .chart-row {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .chart-col {
+      flex: 1;
+      min-width: 0;
+    }
+    .filters {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-item {
+      display: flex;
+      align-items: center;
+    }
+    .filter-item label {
+      margin-right: 5px;
+      font-weight: bold;
+    }
+    select, input {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-style: italic;
+      color: #666;
+      font-size: 18px;
+    }
+    .session-details {
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: none;
+    }
+    .toggle-details {
+      background-color: transparent;
+      border: none;
+      color: #00acc1;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🕵 PEDIAScape - All Sessions Analysis</h2>
+    
+    <div class="navigation">
+      <button class="nav-button" onclick="window.location.href='dashboard.html'">Current Session</button>
+      <button class="nav-button active">All Sessions</button>
+    </div>
+    
+    <div class="stats-container">
+      <div class="section-title">Overall Statistics</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="total-sessions">--</div>
+          <div class="stat-label">Total Sessions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="human-percentage">--</div>
+          <div class="stat-label">Human %</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="bot-percentage">--</div>
+          <div class="stat-label">Bot %</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="avg-confidence">--</div>
+          <div class="stat-label">Avg. Confidence</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <div class="section-title">Verdict Distribution Over Time</div>
+      <canvas id="timelineChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+      <div class="section-title">Key Metrics Analysis</div>
+      <div class="chart-row">
+        <div class="chart-col">
+          <canvas id="verdictPieChart"></canvas>
+        </div>
+        <div class="chart-col">
+          <canvas id="confidenceHistogram"></canvas>
+        </div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-col">
+          <canvas id="platformDistribution"></canvas>
+        </div>
+        <div class="chart-col">
+          <canvas id="browserDistribution"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <div class="section-title">Session Data</div>
+      
+      <div class="filters">
+        <div class="filter-item">
+          <label for="filter-verdict">Verdict:</label>
+          <select id="filter-verdict">
+            <option value="all">All</option>
+            <option value="human">Human</option>
+            <option value="bot">Bot</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="filter-confidence">Min Confidence:</label>
+          <input type="number" id="filter-confidence" min="0" max="1" step="0.1" value="0">
+        </div>
+        <div class="filter-item">
+          <label for="filter-date">Date:</label>
+          <input type="date" id="filter-date">
+        </div>
+        <div class="filter-item">
+          <button class="nav-button" onclick="applyFilters()">Apply Filters</button>
+          <button class="nav-button" onclick="resetFilters()" style="background-color: #f44336;">Reset</button>
+        </div>
+      </div>
+      
+      <div id="sessions-loading" class="loading">Loading sessions data...</div>
+      
+      <table id="sessions-table" style="display: none;">
+        <thead>
+          <tr>
+            <th>Details</th>
+            <th>Timestamp</th>
+            <th>Verdict</th>
+            <th>Confidence</th>
+            <th>Platform</th>
+            <th>Browser</th>
+            <th>Mouse Events</th>
+            <th>Keystrokes</th>
+          </tr>
+        </thead>
+        <tbody id="sessions-body">
+          <!-- Session data rows will be inserted here -->
+        </tbody>
+      </table>
+      
+      <div class="pagination" id="pagination">
+        <!-- Pagination buttons will be inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let allSessions = [];
+    let filteredSessions = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        await fetchSessions();
+        updateStats();
+        renderCharts();
+        setupFilters();
+        displaySessions();
+      } catch (error) {
+        console.error('Error initializing page:', error);
+        document.getElementById('sessions-loading').textContent = 'Error loading sessions: ' + error.message;
+      }
+    });
+    
+    // Fetch all session data from the API
+    async function fetchSessions() {
+      const response = await fetch('http://127.0.0.1:8000/api/sessions');
+      if (!response.ok) {
+        throw new Error('Failed to fetch sessions');
+      }
+      
+      allSessions = await response.json();
+      filteredSessions = [...allSessions];
+      
+      // Sort sessions by timestamp (newest first)
+      allSessions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      filteredSessions = [...allSessions];
+      
+      document.getElementById('sessions-loading').style.display = 'none';
+      document.getElementById('sessions-table').style.display = 'table';
+    }
+    
+    // Update overall statistics
+    function updateStats() {
+      const totalSessions = allSessions.length;
+      document.getElementById('total-sessions').textContent = totalSessions;
+      
+      const humanSessions = allSessions.filter(s => s.verdict === 'human').length;
+      const botSessions = allSessions.filter(s => s.verdict === 'bot').length;
+      
+      const humanPercentage = totalSessions > 0 ? ((humanSessions / totalSessions) * 100).toFixed(1) : 0;
+      const botPercentage = totalSessions > 0 ? ((botSessions / totalSessions) * 100).toFixed(1) : 0;
+      
+      document.getElementById('human-percentage').textContent = humanPercentage + '%';
+      document.getElementById('bot-percentage').textContent = botPercentage + '%';
+      
+      const avgConfidence = totalSessions > 0 
+        ? (allSessions.reduce((sum, session) => sum + parseFloat(session.confidence || 0), 0) / totalSessions).toFixed(2)
+        : 0;
+      
+      document.getElementById('avg-confidence').textContent = avgConfidence;
+    }
+    
+    // Render data visualization charts
+    function renderCharts() {
+      renderVerdictPieChart();
+      renderConfidenceHistogram();
+      renderTimelineChart();
+      renderPlatformDistribution();
+      renderBrowserDistribution();
+    }
+    
+    // Render verdict distribution pie chart
+    function renderVerdictPieChart() {
+      const humanCount = allSessions.filter(s => s.verdict === 'human').length;
+      const botCount = allSessions.filter(s => s.verdict === 'bot').length;
+      
+      const ctx = document.getElementById('verdictPieChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Human', 'Bot'],
+          datasets: [{
+            data: [humanCount, botCount],
+            backgroundColor: ['#00acc1', '#f44336'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Verdict Distribution',
+              font: { size: 16 }
+            },
+            legend: {
+              position: 'right'
+            }
+          }
+        }
+      });
+    }
+    
+    // Render confidence score histogram
+    function renderConfidenceHistogram() {
+      // Extract confidence values
+      const confidenceValues = allSessions.map(s => parseFloat(s.confidence || 0));
+      
+      // Create bins for histogram (0-0.1, 0.1-0.2, etc.)
+      const bins = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      confidenceValues.forEach(value => {
+        const binIndex = Math.min(Math.floor(value * 10), 9);
+        bins[binIndex]++;
+      });
+      
+      const ctx = document.getElementById('confidenceHistogram').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['0-0.1', '0.1-0.2', '0.2-0.3', '0.3-0.4', '0.4-0.5', 
+                  '0.5-0.6', '0.6-0.7', '0.7-0.8', '0.8-0.9', '0.9-1.0'],
+          datasets: [{
+            label: 'Sessions',
+            data: bins,
+            backgroundColor: '#7986cb',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Confidence Score Distribution',
+              font: { size: 16 }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Number of Sessions'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Confidence Range'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Render verdict timeline chart
+    function renderTimelineChart() {
+      // Group sessions by date
+      const dateMap = {};
+      
+      allSessions.forEach(session => {
+        const date = new Date(session.timestamp).toLocaleDateString();
+        if (!dateMap[date]) {
+          dateMap[date] = { human: 0, bot: 0 };
+        }
+        
+        if (session.verdict === 'human') {
+          dateMap[date].human++;
+        } else {
+          dateMap[date].bot++;
+        }
+      });
+      
+      // Convert to arrays for chart
+      const dates = Object.keys(dateMap).sort((a, b) => new Date(a) - new Date(b));
+      const humanCounts = dates.map(date => dateMap[date].human);
+      const botCounts = dates.map(date => dateMap[date].bot);
+      
+      const ctx = document.getElementById('timelineChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: dates,
+          datasets: [
+            {
+              label: 'Human',
+              data: humanCounts,
+              borderColor: '#00acc1',
+              backgroundColor: 'rgba(0, 172, 193, 0.2)',
+              fill: true,
+              tension: 0.3
+            },
+            {
+              label: 'Bot',
+              data: botCounts,
+              borderColor: '#f44336',
+              backgroundColor: 'rgba(244, 67, 54, 0.2)',
+              fill: true,
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Sessions by Date',
+              font: { size: 16 }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              stacked: false,
+              title: {
+                display: true,
+                text: 'Number of Sessions'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Date'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Render platform distribution chart
+    function renderPlatformDistribution() {
+      // Count sessions by platform
+      const platformCounts = {};
+      
+      allSessions.forEach(session => {
+        const raw = session.raw || {};
+        const platform = raw.os || 'Unknown';
+        
+        if (!platformCounts[platform]) {
+          platformCounts[platform] = 0;
+        }
+        platformCounts[platform]++;
+      });
+      
+      // Convert to arrays for chart
+      const platforms = Object.keys(platformCounts);
+      const counts = platforms.map(platform => platformCounts[platform]);
+      
+      const ctx = document.getElementById('platformDistribution').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: platforms,
+          datasets: [{
+            label: 'Sessions',
+            data: counts,
+            backgroundColor: '#4caf50',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'OS/Platform Distribution',
+              font: { size: 16 }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Number of Sessions'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Extract browser from user agent
+    function extractBrowserInfo(userAgent) {
+      if (!userAgent) return "Unknown";
+      
+      // Extract browser name
+      if (userAgent.includes("Chrome")) {
+        return "Chrome";
+      } else if (userAgent.includes("Firefox")) {
+        return "Firefox";
+      } else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) {
+        return "Safari";
+      } else if (userAgent.includes("Edge")) {
+        return "Edge";
+      } else {
+        return "Other";
+      }
+    }
+    
+    // Render browser distribution chart
+    function renderBrowserDistribution() {
+      // Count sessions by browser
+      const browserCounts = {};
+      
+      allSessions.forEach(session => {
+        const raw = session.raw || {};
+        const userAgent = raw.userAgent || '';
+        const browser = extractBrowserInfo(userAgent);
+        
+        if (!browserCounts[browser]) {
+          browserCounts[browser] = 0;
+        }
+        browserCounts[browser]++;
+      });
+      
+      // Convert to arrays for chart
+      const browsers = Object.keys(browserCounts);
+      const counts = browsers.map(browser => browserCounts[browser]);
+      
+      const ctx = document.getElementById('browserDistribution').getContext('2d');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: browsers,
+          datasets: [{
+            data: counts,
+            backgroundColor: ['#42a5f5', '#7e57c2', '#ff7043', '#ffca28', '#78909c'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Browser Distribution',
+              font: { size: 16 }
+            },
+            legend: {
+              position: 'right'
+            }
+          }
+        }
+      });
+    }
+    
+    // Set up date filter with valid range
+    function setupFilters() {
+      const dateInput = document.getElementById('filter-date');
+      
+      // Get min and max dates from sessions
+      if (allSessions.length > 0) {
+        const dates = allSessions.map(s => new Date(s.timestamp));
+        const minDate = new Date(Math.min(...dates));
+        const maxDate = new Date(Math.max(...dates));
+        
+        // Format dates for input element
+        const formatDate = (date) => {
+          return date.toISOString().split('T')[0];
+        };
+        
+        dateInput.min = formatDate(minDate);
+        dateInput.max = formatDate(maxDate);
+      }
+    }
+    
+    // Apply filters to session data
+    function applyFilters() {
+      const verdictFilter = document.getElementById('filter-verdict').value;
+      const confidenceFilter = parseFloat(document.getElementById('filter-confidence').value);
+      const dateFilter = document.getElementById('filter-date').value;
+      
+      filteredSessions = allSessions.filter(session => {
+        // Filter by verdict
+        if (verdictFilter !== 'all' && session.verdict !== verdictFilter) {
+          return false;
+        }
+        
+        // Filter by confidence
+        if (!isNaN(confidenceFilter) && parseFloat(session.confidence) < confidenceFilter) {
+          return false;
+        }
+        
+        // Filter by date
+        if (dateFilter) {
+          const sessionDate = new Date(session.timestamp).toISOString().split('T')[0];
+          if (sessionDate !== dateFilter) {
+            return false;
+          }
+        }
+        
+        return true;
+      });
+      
+      // Reset pagination
+      currentPage = 1;
+      
+      // Update UI
+      displaySessions();
+    }
+    
+    // Reset all filters
+    function resetFilters() {
+      document.getElementById('filter-verdict').value = 'all';
+      document.getElementById('filter-confidence').value = 0;
+      document.getElementById('filter-date').value = '';
+      
+      filteredSessions = [...allSessions];
+      currentPage = 1;
+      
+      displaySessions();
+    }
+    
+    // Display session data in table
+    function displaySessions() {
+      const tableBody = document.getElementById('sessions-body');
+      tableBody.innerHTML = '';
+      
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = Math.min(startIndex + itemsPerPage, filteredSessions.length);
+      
+      const sessionSlice = filteredSessions.slice(startIndex, endIndex);
+      
+      if (sessionSlice.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td colspan="8" style="text-align: center;">No sessions match the selected filters</td>`;
+        tableBody.appendChild(row);
+      } else {
+        sessionSlice.forEach((session, index) => {
+          const raw = session.raw || {};
+          
+          // Get mouse/keystroke counts
+          const mouseEvents = Array.isArray(raw.mouseMovementPatterns) 
+            ? raw.mouseMovementPatterns.length 
+            : (typeof raw.mouseMovementPatterns === 'string' 
+               ? JSON.parse(raw.mouseMovementPatterns).length 
+               : 0);
+          
+          const keystrokes = Array.isArray(raw.keystrokeDynamics)
+            ? raw.keystrokeDynamics.length
+            : (typeof raw.keystrokeDynamics === 'string'
+               ? JSON.parse(raw.keystrokeDynamics).length
+               : 0);
+          
+          // Format timestamp
+          const timestamp = new Date(session.timestamp).toLocaleString();
+          
+          // Extract browser info
+          const browser = extractBrowserInfo(raw.userAgent);
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>
+              <button class="toggle-details" onclick="toggleDetails(${startIndex + index})">
+                Show Details
+              </button>
+              <div id="session-details-${startIndex + index}" class="session-details"></div>
+            </td>
+            <td>${timestamp}</td>
+            <td class="verdict-${session.verdict}">${session.verdict.toUpperCase()}</td>
+            <td>${session.confidence}</td>
+            <td>${raw.os || 'Unknown'}</td>
+            <td>${browser}</td>
+            <td>${mouseEvents}</td>
+            <td>${keystrokes}</td>
+          `;
+          
+          tableBody.appendChild(row);
+        });
+      }
+      
+      // Update pagination
+      updatePagination();
+    }
+    
+    // Toggle session details
+    window.toggleDetails = function(index) {
+      const session = filteredSessions[index];
+      const detailsElement = document.getElementById(`session-details-${index}`);
+      const button = detailsElement.previousElementSibling;
+      
+      if (detailsElement.style.display === 'block') {
+        detailsElement.style.display = 'none';
+        button.textContent = 'Show Details';
+        return;
+      }
+      
+      // Format session details
+      const raw = session.raw || {};
+      
+      let detailsHTML = `
+        <h4>Session Details</h4>
+        <p><strong>User Agent:</strong> ${raw.userAgent || 'N/A'}</p>
+        <p><strong>Screen Resolution:</strong> ${raw.screenResolution || 'N/A'}</p>
+        <p><strong>Language:</strong> ${raw.language || 'N/A'}</p>
+        <p><strong>Timezone:</strong> ${raw.timezone || 'N/A'}</p>
+        <p><strong>CPU Threads:</strong> ${raw.cpuThreads || 'N/A'}</p>
+        <p><strong>GPU Info:</strong> ${raw.gpuInfo || 'N/A'}</p>
+        <p><strong>Connection Speed:</strong> ${raw.connectionSpeed || 'N/A'}</p>
+        <p><strong>Scroll Depth:</strong> ${raw.scrollDepth || 'N/A'}</p>
+      `;
+      
+      detailsElement.innerHTML = detailsHTML;
+      detailsElement.style.display = 'block';
+      button.textContent = 'Hide Details';
+    };
+    
+    // Update pagination controls
+    function updatePagination() {
+      const paginationElement = document.getElementById('pagination');
+      paginationElement.innerHTML = '';
+      
+      const totalPages = Math.ceil(filteredSessions.length / itemsPerPage);
+      
+      // Previous button
+      const prevButton = document.createElement('button');
+      prevButton.classList.add('page-button');
+      prevButton.textContent = '« Prev';
+      prevButton.disabled = currentPage === 1;
+      prevButton.addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          displaySessions();
+        }
+      });
+      paginationElement.appendChild(prevButton);
+      
+      // Page buttons
+      const maxButtons = 5;
+      const startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+      const endPage = Math.min(totalPages, startPage + maxButtons - 1);
+      
+      for (let i = startPage; i <= endPage; i++) {
+        const pageButton = document.createElement('button');
+        pageButton.classList.add('page-button');
+        if (i === currentPage) {
+          pageButton.classList.add('active');
+        }
+        pageButton.textContent = i;
+        pageButton.addEventListener('click', () => {
+          currentPage = i;
+          displaySessions();
+        });
+        paginationElement.appendChild(pageButton);
+      }
+      
+      // Next button
+      const nextButton = document.createElement('button');
+      nextButton.classList.add('page-button');
+      nextButton.textContent = 'Next »';
+      nextButton.disabled = currentPage === totalPages;
+      nextButton.addEventListener('click', () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          displaySessions();
+        }
+      });
+      paginationElement.appendChild(nextButton);
+    }
+  </script>
+</body>
+</html>

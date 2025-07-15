@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PEDIAScape - Session Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .chart-container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+    .verdict-box {
+      text-align: center;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #e0f7fa;
+      border-left: 6px solid #00acc1;
+      font-size: 18px;
+      font-weight: bold;
+      max-width: 800px;
+    }
+    canvas {
+      max-height: 400px;
+    }
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      max-width: 800px;
+      margin: 20px auto;
+    }
+    .data-card {
+      background-color: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .data-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    .data-value {
+      font-size: 16px;
+      font-weight: bold;
+      word-break: break-word;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      font-style: italic;
+      color: #666;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 15px 0;
+      color: #333;
+    }
+    .chart-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: space-between;
+    }
+    .chart-column {
+      flex: 1;
+      min-width: 300px;
+    }
+    .nav-buttons {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+      gap: 15px;
+    }
+    .nav-button {
+      background-color: #42a5f5;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    .nav-button:hover {
+      background-color: #2196f3;
+    }
+    .current-page {
+      background-color: #0d47a1;
+    }
+  </style>
+</head>
+<body>
+  <h2>🕵 PEDIAScape - Session Dashboard</h2>
+  
+  <div class="nav-buttons">
+    <button class="nav-button current-page" disabled>Current Session</button>
+    <button class="nav-button" onclick="window.location.href='all-sessions.html'">All Sessions</button>
+  </div>
+  
+  <div class="verdict-box" id="verdictBox">Loading verdict from backend...</div>
+  
+  <div class="data-grid">
+    <div class="data-card">
+      <div class="data-label">GPU Info</div>
+      <div class="data-value" id="gpu-info">Loading...</div>
+    </div>
+    <div class="data-card">
+      <div class="data-label">User-Agent</div>
+      <div class="data-value" id="user-agent">Loading...</div>
+    </div>
+    <div class="data-card">
+      <div class="data-label">Click Count</div>
+      <div class="data-value" id="click-count">Loading...</div>
+    </div>
+    <div class="data-card">
+      <div class="data-label">Keys Pressed</div>
+      <div class="data-value" id="keypress-count">Loading...</div>
+    </div>
+
+    <!-- Device info cards -->
+    <div class="data-card">
+      <div class="data-label">Platform</div>
+      <div class="data-value" id="platform">Loading...</div>
+    </div>
+    <div class="data-card">
+      <div class="data-label">Resolution</div>
+      <div class="data-value" id="screen-size">Loading...</div>
+    </div>
+    <div class="data-card">
+      <div class="data-label">Browser</div>
+      <div class="data-value" id="browser">Loading...</div>
+    </div>
+    <div class="data-card">
+      <div class="data-label">Language</div>
+      <div class="data-value" id="language">Loading...</div>
+    </div>
+    <div class="data-card">
+      <div class="data-label">Timezone</div>
+      <div class="data-value" id="timezone">Loading...</div>
+    </div>
+    <div class="data-card">
+      <div class="data-label">CPU Threads</div>
+      <div class="data-value" id="cpu-threads">Loading...</div>
+    </div>
+    <div class="data-card">
+      <div class="data-label">Connection</div>
+      <div class="data-value" id="connection-speed">Loading...</div>
+    </div>
+    <div class="data-card">
+      <div class="data-label">Scroll Depth</div>
+      <div class="data-value" id="scroll-depth">Loading...</div>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <div class="section-title">Mouse Movement Patterns</div>
+    <div class="loading" id="mouseChartLoading">Loading mouse movement data...</div>
+    <canvas id="mouseChart"></canvas>
+  </div>
+  
+  <div class="chart-container">
+    <div class="section-title">User Interaction Metrics</div>
+    <div class="chart-row">
+      <div class="chart-column">
+        <canvas id="clickTimingChart"></canvas>
+      </div>
+      <div class="chart-column">
+        <canvas id="keypressChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <div class="section-title">Performance Metrics</div>
+    <div class="chart-row">
+      <div class="chart-column">
+        <canvas id="loadTimeChart"></canvas>
+      </div>
+      <div class="chart-column">
+        <canvas id="inactivityChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    // Hide charts initially until data loads
+    document.getElementById('mouseChart').style.display = 'none';
+    document.getElementById('clickTimingChart').style.display = 'none';
+    document.getElementById('keypressChart').style.display = 'none';
+    document.getElementById('loadTimeChart').style.display = 'none';
+    document.getElementById('inactivityChart').style.display = 'none';
+
+    function updateVerdict(verdict, confidence) {
+      const box = document.getElementById('verdictBox');
+      box.textContent = `Verdict: ${verdict.toUpperCase()} (Confidence: ${confidence})`;
+      
+      // Change color based on verdict
+      if (verdict.toLowerCase() === "human") {
+        box.style.backgroundColor = "#e0f7fa";
+        box.style.borderLeft = "6px solid #00acc1";
+      } else {
+        box.style.backgroundColor = "#ffebee";
+        box.style.borderLeft = "6px solid #f44336";
+      }
+    }
+
+    function updateMetricsCards(data) {
+      // Updated fields: GPU Info and User-Agent instead of Session ID and Dwell Time
+      document.getElementById('gpu-info').innerText = data.gpuInfo || "Not detected";
+      document.getElementById('user-agent').innerText = data.userAgent || "Not available";
+      
+      // Count metrics
+      document.getElementById('click-count').innerText = Array.isArray(data.clickTimings) 
+        ? data.clickTimings.length 
+        : "0";
+      document.getElementById('keypress-count').innerText = Array.isArray(data.keystrokeDynamics) 
+        ? data.keystrokeDynamics.length 
+        : "0";
+      
+      // Device metrics
+      document.getElementById('platform').innerText = data.os || "Unknown";
+      document.getElementById('screen-size').innerText = data.screenResolution || "Unknown";
+      document.getElementById('browser').innerText = extractBrowserInfo(data.userAgent) || "Unknown";
+      document.getElementById('language').innerText = data.language || "Unknown";
+      document.getElementById('timezone').innerText = data.timezone || "Unknown";
+      document.getElementById('cpu-threads').innerText = data.cpuThreads || "Unknown";
+      document.getElementById('connection-speed').innerText = data.connectionSpeed || "Unknown";
+      document.getElementById('scroll-depth').innerText = data.scrollDepth || "Unknown";
+    }
+
+    function extractBrowserInfo(userAgent) {
+      if (!userAgent) return "Unknown";
+      
+      // Extract browser name and version from user agent
+      if (userAgent.includes("Chrome")) {
+        return "Chrome " + userAgent.match(/Chrome\/(\d+)/)[1];
+      } else if (userAgent.includes("Firefox")) {
+        return "Firefox " + userAgent.match(/Firefox\/(\d+)/)[1];
+      } else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) {
+        return "Safari " + userAgent.match(/Version\/(\d+)/)[1];
+      } else if (userAgent.includes("Edge")) {
+        return "Edge " + userAgent.match(/Edge\/(\d+)/)[1];
+      } else {
+        return userAgent.split(" ")[0];
+      }
+    }
+
+    function renderMouseChart(data) {
+      if (!data || data.length === 0) {
+        document.getElementById('mouseChartLoading').textContent = 'No mouse movement data available';
+        return;
+      }
+      
+      document.getElementById('mouseChartLoading').style.display = 'none';
+      document.getElementById('mouseChart').style.display = 'block';
+      
+      // Extract X and Y values from the mouse movement data
+      const xValues = data.map(point => point.x);
+      const yValues = data.map(point => point.y);
+      
+      const ctx = document.getElementById('mouseChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map((_, i) => i),
+          datasets: [
+            {
+              label: 'X Position',
+              data: xValues,
+              borderColor: '#42a5f5',
+              tension: 0.3,
+              fill: false
+            },
+            {
+              label: 'Y Position',
+              data: yValues,
+              borderColor: '#26a69a',
+              tension: 0.3,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Mouse Movement Coordinates',
+              font: { size: 16 }
+            }
+          },
+          scales: {
+            y: { 
+              beginAtZero: true,
+              title: { 
+                display: true, 
+                text: 'Position (px)' 
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Time Sequence'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderClickTimingChart(data) {
+      if (!data || data.length === 0) {
+        return;
+      }
+      
+      document.getElementById('clickTimingChart').style.display = 'block';
+      
+      const ctx = document.getElementById('clickTimingChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: `data.map((_, i) => Click ${i+1})`,
+          datasets: [{
+            label: 'Time Between Clicks (s)',
+            data: data,
+            backgroundColor: "#42a5f5"
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Click Timing Intervals',
+              font: { size: 14 }
+            }
+          },
+          scales: {
+            y: { 
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Seconds'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderKeypressChart(data) {
+      if (!data || data.length === 0) {
+        return;
+      }
+      
+      document.getElementById('keypressChart').style.display = 'block';
+      
+      // Process keypress data to categorize keys
+      const categories = {
+        'letters': 0,
+        'numbers': 0,
+        'special': 0,
+        'navigation': 0
+      };
+      
+      data.forEach(keypress => {
+        const key = keypress.key;
+        if (/^[a-zA-Z]$/.test(key)) {
+          categories.letters++;
+        } else if (/^[0-9]$/.test(key)) {
+          categories.numbers++;
+        } else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Escape'].includes(key)) {
+          categories.navigation++;
+        } else {
+          categories.special++;
+        }
+      });
+      
+      const ctx = document.getElementById('keypressChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Letters', 'Numbers', 'Special', 'Navigation'],
+          datasets: [{
+            data: [categories.letters, categories.numbers, categories.special, categories.navigation],
+            backgroundColor: ["#42a5f5", "#26a69a", "#7e57c2", "#ef5350"]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Keypresses by Type',
+              font: { size: 14 }
+            }
+          }
+        }
+      });
+    }
+
+    function renderLoadTimeChart(data) {
+      if (!data || data.length < 2) {
+        return;
+      }
+      
+      document.getElementById('loadTimeChart').style.display = 'block';
+      
+      const ctx = document.getElementById('loadTimeChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Total Load Time', 'DOM Content Loaded'],
+          datasets: [{
+            label: 'Time (seconds)',
+            data: data,
+            backgroundColor: ["#42a5f5", "#26a69a"]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Page Load Performance',
+              font: { size: 14 }
+            }
+          },
+          scales: {
+            y: { 
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Seconds'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderInactivityChart(data) {
+      if (!data || data.length === 0) {
+        return;
+      }
+      
+      document.getElementById('inactivityChart').style.display = 'block';
+      
+      // Extract durations and format them for display
+      const durations = data.map(period => {
+        // Convert "5s+" string format to number (seconds)
+        const durationStr = period.duration;
+        return parseFloat(durationStr.replace('s+', ''));
+      });
+      
+      const ctx = document.getElementById('inactivityChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: `data.map((_, i) => Inactivity ${i+1})`,
+          datasets: [{
+            label: 'Duration (seconds)',
+            data: durations,
+            backgroundColor: "#7e57c2"
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'User Inactivity Periods',
+              font: { size: 14 }
+            }
+          },
+          scales: {
+            y: { 
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Seconds'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Fetch data from the backend API
+    async function fetchLatestSession() {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/sessions');
+        if (!res.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const sessions = await res.json();
+        if (sessions.length === 0) {
+          throw new Error('No sessions found');
+        }
+        return sessions[sessions.length - 1]; // Return the latest session
+      } catch (error) {
+        console.error('Error fetching session data:', error);
+        document.getElementById('verdictBox').textContent = 'Error fetching data from backend: ' + error.message;
+        return null;
+      }
+    }
+
+    async function main() {
+      // Fetch actual session data from backend
+      const session = await fetchLatestSession();
+      
+      if (session) {
+        // Update verdict with data from backend
+        updateVerdict(session.verdict || "Unknown", session.confidence || "N/A");
+        
+        // Extract raw data from session or use session itself
+        const data = session.raw || session;
+        
+        // Update all metrics cards with data
+        updateMetricsCards(data);
+        
+        try {
+          // Parse and render mouse movement data
+          let mouseData = [];
+          if (typeof data.mouseMovementPatterns === 'string') {
+            mouseData = JSON.parse(data.mouseMovementPatterns);
+          } else if (Array.isArray(data.mouseMovementPatterns)) {
+            mouseData = data.mouseMovementPatterns;
+          }
+          renderMouseChart(mouseData);
+          
+          // Parse and render click timing data
+          let clickData = [];
+          if (typeof data.clickTimings === 'string') {
+            clickData = JSON.parse(data.clickTimings);
+          } else if (Array.isArray(data.clickTimings)) {
+            clickData = data.clickTimings;
+          }
+          renderClickTimingChart(clickData);
+          
+          // Parse and render keypress data
+          let keypressData = [];
+          if (typeof data.keystrokeDynamics === 'string') {
+            keypressData = JSON.parse(data.keystrokeDynamics);
+          } else if (Array.isArray(data.keystrokeDynamics)) {
+            keypressData = data.keystrokeDynamics;
+          }
+          renderKeypressChart(keypressData);
+          
+          // Parse and render load time data
+          let loadTimeData = [];
+          if (typeof data.pageLoadTimes === 'string') {
+            loadTimeData = JSON.parse(data.pageLoadTimes);
+          } else if (Array.isArray(data.pageLoadTimes)) {
+            loadTimeData = data.pageLoadTimes;
+          }
+          renderLoadTimeChart(loadTimeData);
+          
+          // Parse and render inactivity data
+          let inactivityData = [];
+          if (typeof data.inactivityPatterns === 'string') {
+            inactivityData = JSON.parse(data.inactivityPatterns);
+          } else if (Array.isArray(data.inactivityPatterns)) {
+            inactivityData = data.inactivityPatterns;
+          }
+          renderInactivityChart(inactivityData);
+          
+        } catch (err) {
+          console.error('Error parsing data:', err);
+        }
+      } else {
+        // Display error message if no data was retrieved
+        document.getElementById('verdictBox').textContent = 'Could not retrieve session data from backend';
+        
+        // Set all card values to N/A when data can't be retrieved
+        const dataValues = document.querySelectorAll('.data-value');
+        dataValues.forEach(element => {
+          element.textContent = 'N/A';
+        });
+      }
+    }
+
+    // Execute when page loads
+    document.addEventListener('DOMContentLoaded', main);
+  </script>
+</body>
+</html>

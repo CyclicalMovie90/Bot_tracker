@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PEDIASCAPE</title>
+    <link rel="stylesheet" href="index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tilt+Warp&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="navbar">
+                <div class="title">PEDIASCAPE</div>
+                <div class="contents">
+                    <ul class="lists">
+                        <li class="listnav" onclick="navigateTo('Roadmaps.html')">ROADMAPS</li>
+                        <li class="listnav" onclick="navigateTo('materials.html')">MATERIALS</li>
+                        <li class="listnav" onclick="navigateTo('Projects1.html')">PROJECTS</li>
+                        <li class="listnav">CAREER GUIDANCE</li>
+                        <li class="listnav">PS AI</li>
+                    </ul>
+
+                    <div>
+                        <img class="profilelogo" src="./imgg/nav/profile.svg" alt="Profile">
+                    </div>
+                </div>
+                <div class="menu-icon" onclick="toggleDropdown()">☰</div>
+                <div class="dropdown">
+                    <div class="listnav" onclick="navigateTo('Roadmaps.html')">ROADMAPS</div>
+                    <div class="listnav" onclick="navigateTo('materials.html')">MATERIALS</div>
+                    <div class="listnav" onclick="navigateTo('Projects1.html')">PROJECTS</div>
+                    <div class="listnav">CAREER GUIDANCE</div>
+                    <div class="listnav">PS AI</div>
+                    <div class="listnav">PROFILE</div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <div class="con1">
+            <div class="WELCOME">
+                <h1><span>WELCOME TO</span>
+                    <span>PEDIASCAPE</span>
+                </h1>
+            </div>
+            <div class="THE">
+                <p>THE NEW ERA OF LEARNING</p>
+            </div>
+        </div>
+
+        <div class="con2">
+            <div class="tile">
+                <img src="./imgg/cont2/roadmap.png" alt="Roadmaps Icon">
+                <p>ROADMAPS</p>
+            </div>
+            <div class="tile">
+                <img src="./imgg/cont2/books.png" alt="Materials Icon">
+                <p>MATERIALS</p>
+            </div>
+            <div class="tile">
+                <img src="./imgg/cont2/project.png" alt="Projects Icon">
+                <p>PROJECTS</p>
+            </div>
+            <div class="tile">
+                <img src="./imgg/cont2/success.png" alt="Career Icon">
+                <p>CAREER GUIDANCE</p>
+            </div>
+        </div>
+    </main>
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.querySelector('.dropdown');
+            dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        // Function to handle redirection to the login page
+        function redirectToLogin() {
+            window.location.href = 'login.html'; // Redirect to login.html
+        }
+
+        // Function to handle navigation to specific pages
+        function navigateTo(page) {
+            window.location.href = page; // Redirect to the specified page
+        }
+
+        // Add event listeners for the profile logo and profile menu option
+        document.addEventListener('DOMContentLoaded', () => {
+            const profileLogo = document.querySelector('.profilelogo'); // Select the profile logo
+            const profileOption = document.querySelector('.dropdown .listnav:last-child'); // Select the profile option in the dropdown
+
+            if (profileLogo) {
+                profileLogo.addEventListener('click', redirectToLogin); // Redirect when profile logo is clicked
+            }
+
+            if (profileOption) {
+                profileOption.addEventListener('click', redirectToLogin); // Redirect when profile option is clicked
+            }
+        });
+    </script>
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="footer-col">
+                    <h4>company</h4>
+                    <ul>
+                        <li><a href="#">about us</a></li>
+                        <li><a href="#">our services</a></li>
+                        <li><a href="#">privacy policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>get help</h4>
+                    <ul>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Login/Signup</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>follow us</h4>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="./scripts/passive-tracker.js"></script>
+</body>
+
+</html>
