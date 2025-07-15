@@ -129,5 +129,5 @@ fetch("https://your-api.onrender.com/api/verify", { ... });
 - 🏫 Hosted by Sreyas Institute of Engineering and Technology
 - 🎉 Special thanks to Shylee Preetham and the organizing team
 
-📚 License
+## 📚 License
 MIT License
