@@ -123,7 +123,7 @@ fetch("https://your-api.onrender.com/api/verify", { ... });
 
 - 👥 Built by Team Vitality during HackAttack 2025
   - Indrakanti Kevin
-  - Somya Sudhir Nayak
+  - Soumya Sudhir Nayak
   - Sameer Sipia
   - Malkan Vardhini
 - 🏫 Hosted by Sreyas Institute of Engineering and Technology
