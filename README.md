@@ -122,10 +122,10 @@ fetch("https://your-api.onrender.com/api/verify", { ... });
 ## 🙌 Team Credits
 
 - 👥 Built by Team Vitality during HackAttack 2025
-  Indrakanti Kevin
-  Somya Sudhir Nayak
-  Sameer Sipia
-  Malkan Vardhini
+  - Indrakanti Kevin
+  - Somya Sudhir Nayak
+  - Sameer Sipia
+  - Malkan Vardhini
 - 🏫 Hosted by Sreyas Institute of Engineering and Technology
 - 🎉 Special thanks to Shylee Preetham and the organizing team
 
